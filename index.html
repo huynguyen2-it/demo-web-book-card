@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DevBooks All-in-One - God Mode Arena</title>
+    <style>
+        :root { --primary: #0f172a; --accent: #3b82f6; --hover: #2563eb; --success: #10b981; --bg: #f8fafc; --text: #334155; --card-bg: #ffffff; --border: #e2e8f0; }
+        body.dark-mode { --primary: #60a5fa; --accent: #38bdf8; --hover: #7dd3fc; --bg: #0f172a; --text: #f1f5f9; --card-bg: #1e293b; --border: #334155; }
+
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding-top: 70px; transition: 0.3s; }
+
+        /* NAVBAR & AVATAR UPLOAD */
+        .navbar { position: fixed; top: 0; left: 0; right: 0; height: 70px; background: var(--card-bg); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; padding: 0 50px; z-index: 1000; transition: 0.3s; }
+        .logo { font-size: 24px; font-weight: 900; color: var(--primary); display: flex; align-items: center; gap: 10px; cursor: pointer;}
+        .logo span { color: var(--accent); }
+        .nav-right { display: flex; align-items: center; gap: 20px; }
+        .theme-toggle { background: none; border: 2px solid var(--border); padding: 8px; border-radius: 50%; cursor: pointer; color: var(--text); display: flex; justify-content: center; width: 40px; height: 40px; }
+
+        /* AVATAR UPLOAD (V5) */
+        .avatar-wrapper { position: relative; cursor: pointer; display: flex; align-items: center; gap: 10px; }
+        .avatar-img { width: 35px; height: 35px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent);}
+        #avatar-upload { display: none; }
+
+        /* RANDOM AD POPUP (V5) */
+        .ad-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; display: none; justify-content: center; align-items: center; backdrop-filter: blur(3px); }
+        .ad-content { background: var(--card-bg); padding: 40px; border-radius: 16px; text-align: center; max-width: 400px; position: relative; border: 1px solid var(--border); }
+        .ad-close { position: absolute; top: 10px; right: 15px; font-size: 24px; cursor: pointer; color: var(--text); border: none; background: transparent; }
+
+        .hero-banner { background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%); color: white; padding: 60px 20px; text-align: center; display: none; }
+        .hero-banner h1 { font-size: 40px; margin: 0 0 15px 0; font-weight: 800; }
+        .btn-cta { background: var(--accent); color: white; padding: 12px 30px; font-size: 16px; font-weight: bold; border: none; border-radius: 30px; cursor: pointer; transition: 0.3s; }
+
+        .container { max-width: 1100px; margin: 40px auto; padding: 0 20px; min-height: 60vh; }
+
+        /* FORMS & INPUTS */
+        #login-section { max-width: 380px; margin: 60px auto; padding: 40px 30px; background: var(--card-bg); border-radius: 16px; border: 1px solid var(--border); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
+        .input-group { margin-bottom: 20px; }
+        .input-group label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--text); }
+        input, select { width: 100%; padding: 14px; border: 2px solid var(--border); border-radius: 10px; box-sizing: border-box; background: var(--card-bg); color: var(--text); font-size: 15px; }
+        .btn-primary { width: 100%; padding: 14px; background-color: var(--accent); color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 16px; }
+        .error { color: #ef4444; font-size: 14px; margin-top: 15px; text-align: center; display: none; font-weight: 600; background: #fef2f2; padding: 10px; border-radius: 8px;}
+        .loader { border: 3px solid var(--border); border-top: 3px solid var(--accent); border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; margin: 15px auto; display: none; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        /* DASHBOARD & DRAG-DROP ZONE (V6) */
+        #dashboard-section, #cart-section { display: none; }
+        .control-bar { display: flex; gap: 20px; margin-bottom: 30px; background: var(--card-bg); padding: 20px; border-radius: 12px; border: 1px solid var(--border); }
+
+        .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 30px; }
+        .product-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; display: flex; flex-direction: column; cursor: grab; }
+        .product-card:active { cursor: grabbing; }
+        .badge { position: absolute; top: 15px; left: 15px; background: #ef4444; color: white; padding: 4px 10px; font-size: 12px; font-weight: bold; border-radius: 20px;}
+        .product-img { width: 100%; height: 220px; object-fit: cover; background: #f1f5f9; pointer-events: none; }
+        .product-info { padding: 20px; display: flex; flex-direction: column; flex-grow: 1; pointer-events: none;}
+        .product-title { font-size: 17px; font-weight: 700; margin: 0 0 5px 0; }
+        .product-price { color: var(--accent); font-weight: 800; font-size: 22px; margin-top: auto; margin-bottom: 15px; }
+        .btn-add { background: transparent; color: var(--accent); border: 2px solid var(--accent); padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; pointer-events: auto;}
+
+        /* DRAG & DROP ZONE (V6) */
+        #wishlist-zone { margin-top: 40px; padding: 30px; border: 3px dashed var(--border); border-radius: 12px; text-align: center; background: var(--card-bg); transition: 0.3s; }
+        #wishlist-zone.dragover { background: var(--bg); border-color: var(--accent); }
+        .wishlist-items { display: flex; gap: 10px; justify-content: center; margin-top: 15px; flex-wrap: wrap; }
+        .wishlist-item { background: var(--primary); color: white; padding: 8px 15px; border-radius: 20px; font-size: 14px; font-weight: bold; }
+
+        /* CART & IFRAME PAYMENT (V5) */
+        .cart-container { background: var(--card-bg); padding: 30px; border-radius: 16px; border: 1px solid var(--border); }
+        .cart-item { display: flex; justify-content: space-between; padding: 15px 0; border-bottom: 1px solid var(--border); font-size: 16px; font-weight: 500;}
+        .promo-box { display: flex; gap: 10px; margin: 20px 0; padding: 15px; background: var(--bg); border-radius: 8px; border: 1px dashed var(--border);}
+        .cart-total { text-align: right; font-size: 24px; font-weight: 900; margin: 20px 0; color: var(--primary); }
+        .discount-text { color: var(--success); text-align: right; font-size: 16px; margin-bottom: 10px; display: none;}
+
+        #payment-iframe-container { display: none; width: 100%; height: 350px; border: 2px solid var(--accent); border-radius: 12px; margin-top: 20px; overflow: hidden; }
+        iframe { width: 100%; height: 100%; border: none; background: #fff; }
+
+        #toast { visibility: hidden; min-width: 280px; background-color: var(--success); color: #fff; text-align: center; border-radius: 10px; padding: 16px; position: fixed; z-index: 1001; bottom: 30px; right: 30px; font-weight: bold; }
+        #toast.show { visibility: visible; animation: fadein 0.4s, fadeout 0.4s 2.5s; }
+        @keyframes fadein { from {bottom: 0; opacity: 0;} to {bottom: 30px; opacity: 1;} }
+        @keyframes fadeout { from {bottom: 30px; opacity: 1;} to {bottom: 0; opacity: 0;} }
+
+        footer { border-top: 1px solid var(--border); padding: 30px; text-align: center; margin-top: 50px; font-size: 14px; color: var(--text); }
+    </style>
+</head>
+<body>
+
+<!-- POPUP QUẢNG CÁO (V5) -->
+<div class="ad-overlay" id="ad-popup">
+    <div class="ad-content">
+        <button class="ad-close" id="close-ad-btn" onclick="document.getElementById('ad-popup').style.display='none'">×</button>
+        <h2 style="color: #ef4444; margin-top: 0;">🔥 ƯU ĐÃI ĐỘC QUYỀN 🔥</h2>
+        <p style="color: var(--text);">Giảm 50% toàn bộ sách IT cho 10 người đăng ký đầu tiên!</p>
+        <input type="email" placeholder="Nhập email của bạn..." style="margin-bottom: 20px;">
+        <button class="btn-primary" style="background: #ef4444;" onclick="document.getElementById('ad-popup').style.display='none'">Nhận Mã Ngay</button>
+    </div>
+</div>
+
+<nav class="navbar">
+    <div class="logo" onclick="location.reload()">📚 Dev<span>Books</span></div>
+    <div class="nav-right" id="nav-user-area" style="display: none;">
+        <button class="theme-toggle" onclick="toggleTheme()" title="Đổi giao diện">🌓</button>
+
+        <!-- MULTI-TAB HELP LINK (V6) -->
+        <a href="https://playwright.dev" target="_blank" id="help-link" style="color: var(--accent); text-decoration: none; font-weight: bold; font-size: 14px;">Hỗ Trợ ↗</a>
+
+        <!-- AVATAR UPLOAD (V5) -->
+        <label class="avatar-wrapper" title="Đổi Avatar">
+            <img src="https://placehold.co/100x100/e2e8f0/64748b?text=U" id="avatar-preview" class="avatar-img">
+            <span style="font-weight: 600;">Chào, <span id="user-display" style="color: var(--accent);"></span></span>
+            <input type="file" id="avatar-upload" accept="image/*" onchange="handleAvatarUpload(event)">
+        </label>
+
+        <button id="nav-btn-cart" class="btn-primary" style="width:auto; padding: 10px 20px; border-radius: 30px;" onclick="switchView('cart')">
+            Giỏ Hàng <span style="background: white; color: var(--accent); padding: 2px 8px; border-radius: 12px; font-size: 12px; margin-left: 5px;" id="cart-count">0</span>
+        </button>
+    </div>
+</nav>
+
+<header class="hero-banner" id="hero-banner">
+    <h1>Khóa Học Playwright Masterclass</h1>
+    <p>Chinh phục Iframe, Shadow DOM, Drag & Drop và Multi-tab ngay trên một màn hình.</p>
+    <button class="btn-cta" onclick="document.getElementById('product-list').scrollIntoView({behavior: 'smooth'})">Thực Hành Ngay</button>
+</header>
+
+<main class="container">
+    <!-- ĐĂNG NHẬP -->
+    <div id="login-section">
+        <h2 style="text-align: center; margin-bottom: 20px;">Đăng Nhập</h2>
+        <div class="input-group">
+            <label>Tên đăng nhập (admin)</label>
+            <input type="text" id="username" value="admin">
+        </div>
+        <div class="input-group">
+            <label>Mật khẩu (123456)</label>
+            <input type="password" id="password" value="123456">
+        </div>
+        <button id="btn-login" class="btn-primary" onclick="executeLogin()">Vào Hệ Thống</button>
+        <div id="login-loader" class="loader"></div>
+        <div id="login-error" class="error">❌ Sai tài khoản hoặc mật khẩu!</div>
+    </div>
+
+    <!-- SẢN PHẨM & SHADOW DOM -->
+    <div id="dashboard-section">
+
+        <!-- SHADOW DOM PROMO (V6) -->
+        <div style="background: rgba(245, 158, 11, 0.1); border: 1px solid #f59e0b; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+            <p style="margin: 0 0 10px 0; font-weight: bold; color: #b45309;">🎁 Mã Giảm Giá Đặc Biệt (Ẩn trong Shadow DOM):</p>
+            <secret-promo id="secret-component"></secret-promo>
+        </div>
+
+        <div class="control-bar">
+            <div style="flex-grow: 1; display: flex; gap: 10px;">
+                <input type="text" id="search-input" placeholder="🔍 Tìm kiếm tên sách...">
+                <button class="btn-primary" style="width: auto;" onclick="renderProducts()">Tìm</button>
+            </div>
+            <select id="sort-select" onchange="renderProducts()">
+                <option value="default">Sắp xếp: Mặc định</option>
+                <option value="low-high">Giá: Thấp đến Cao</option>
+                <option value="high-low">Giá: Cao đến Thấp</option>
+            </select>
+        </div>
+
+        <div id="dashboard-loader" class="loader" style="width: 40px; height: 40px;"></div>
+        <div class="product-grid" id="product-list"></div>
+
+        <!-- DRAG & DROP ZONE (V6) -->
+        <div id="wishlist-zone" ondrop="drop(event)" ondragover="allowDrop(event)" ondragleave="dragLeave(event)">
+            <h3>❤️ Kéo Thả Sách Vào Đây Để Lưu Yêu Thích</h3>
+            <p style="color: #64748b; font-size: 14px;">(Dùng hàm drag_to() của Playwright để test khu vực này)</p>
+            <div class="wishlist-items" id="wishlist-items"></div>
+        </div>
+    </div>
+
+    <!-- GIỎ HÀNG & IFRAME THANH TOÁN -->
+    <div id="cart-section">
+        <button onclick="switchView('dashboard')" style="background: none; border: none; color: var(--accent); font-weight: bold; margin-bottom: 20px;">← Quay lại cửa hàng</button>
+
+        <div class="cart-container" id="cart-content">
+            <h2>🛒 Giỏ Hàng</h2>
+            <div id="cart-items"></div>
+
+            <div class="promo-box" id="promo-section" style="display: none;">
+                <input type="text" id="promo-input" placeholder="Nhập mã PLAYWRIGHT20">
+                <button class="btn-primary" style="width: auto;" onclick="applyPromo()">Áp Dụng</button>
+            </div>
+            <div id="promo-msg" style="font-weight: bold; margin-bottom: 10px;"></div>
+
+            <div class="discount-text" id="discount-display"></div>
+            <div class="cart-total" id="cart-total-display">Tổng thanh toán: $0.00</div>
+
+            <button id="btn-checkout" class="btn-primary" style="background-color: var(--success);" onclick="openPaymentIframe()">Thanh Toán Đơn Hàng</button>
+
+            <!-- IFRAME THANH TOÁN (V5) -->
+            <div id="payment-iframe-container">
+                <iframe id="payment-frame" srcdoc="
+                    <html style='font-family:sans-serif; text-align:center; padding:30px; background:#f8fafc; color:#334155;'>
+                        <h2 style='color:#0f172a; margin-top:0;'>Cổng VNPay Sandbox</h2>
+                        <input type='text' id='card-number' placeholder='Số thẻ: 9704...' style='padding:12px; width:80%; margin:10px 0; border:1px solid #cbd5e1; border-radius:6px;'>
+                        <br>
+                        <button id='btn-confirm-pay' style='padding:12px 30px; background:#10b981; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer; margin-top:10px;' onclick='document.getElementById(`success-msg`).style.display=`block`; this.style.display=`none`;'>Xác Nhận Trừ Tiền</button>
+                        <h3 id='success-msg' style='display:none; color:#10b981;'>✅ THANH TOÁN THÀNH CÔNG!</h3>
+                    </html>
+                "></iframe>
+            </div>
+        </div>
+    </div>
+</main>
+
+<footer>© 2026 DevBooks Automation Demo. All-in-One God Mode.</footer>
+
+<div id="toast">✅ Đã thêm vào giỏ hàng!</div>
+
+<script>
+    // --- CUSTOM WEB COMPONENT (SHADOW DOM V6) ---
+    class SecretPromo extends HTMLElement {
+        constructor() {
+            super();
+            const shadow = this.attachShadow({mode: 'open'});
+            const wrapper = document.createElement('div');
+            wrapper.innerHTML = `<span id="promo-code" style="background: #f59e0b; color: white; padding: 5px 10px; border-radius: 4px; font-family: monospace;">PLAYWRIGHT20</span>`;
+            shadow.appendChild(wrapper);
+        }
+    }
+    customElements.define('secret-promo', SecretPromo);
+
+    const DB_PRODUCTS = [
+        { id: "B001", title: "Clean Architecture", price: 50.00, badge: "Bestseller", img: "https://placehold.co/400x300/0f172a/ffffff?text=Clean+Architecture" },
+        { id: "B002", title: "Python for DevOps", price: 35.00, badge: "", img: "https://placehold.co/400x300/3b82f6/ffffff?text=Python+DevOps" },
+        { id: "B003", title: "Automate The Boring Stuff", price: 20.00, badge: "Hot", img: "https://placehold.co/400x300/10b981/ffffff?text=Automate+Python" },
+        { id: "B004", title: "System Design", price: 45.00, badge: "", img: "https://placehold.co/400x300/f59e0b/ffffff?text=System+Design" }
+    ];
+    let cart = [];
+    let discountPercent = 0;
+    const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+    function toggleTheme() { document.body.classList.toggle('dark-mode'); }
+
+    // Xử lý Upload Avatar (V5)
+    function handleAvatarUpload(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) { document.getElementById('avatar-preview').src = e.target.result; }
+            reader.readAsDataURL(file);
+        }
+    }
+
+    async function executeLogin() {
+        const user = document.getElementById('username').value;
+        const pass = document.getElementById('password').value;
+        document.getElementById('login-error').style.display = 'none';
+        document.getElementById('btn-login').style.display = 'none';
+        document.getElementById('login-loader').style.display = 'block';
+
+        await sleep(1000);
+
+        if (user === 'admin' && pass === '123456') {
+            document.getElementById('login-section').style.display = 'none';
+            document.getElementById('dashboard-section').style.display = 'block';
+            document.getElementById('hero-banner').style.display = 'block';
+            document.getElementById('nav-user-area').style.display = 'flex';
+            document.getElementById('user-display').innerText = user;
+            await renderProducts(true);
+
+            // RANDOM POPUP BOMB (V5)
+            setTimeout(() => { document.getElementById('ad-popup').style.display = 'flex'; }, Math.random() * 2000 + 3000);
+        } else {
+            document.getElementById('login-loader').style.display = 'none';
+            document.getElementById('btn-login').style.display = 'block';
+            document.getElementById('login-error').style.display = 'block';
+        }
+    }
+
+    async function renderProducts(isFirstLoad = false) {
+        const container = document.getElementById('product-list');
+        const loader = document.getElementById('dashboard-loader');
+        container.innerHTML = '';
+        loader.style.display = 'block';
+        if(!isFirstLoad) await sleep(500);
+        loader.style.display = 'none';
+
+        const keyword = document.getElementById('search-input').value.toLowerCase();
+        const sortValue = document.getElementById('sort-select').value;
+        let filtered = DB_PRODUCTS.filter(p => p.title.toLowerCase().includes(keyword));
+
+        if(sortValue === 'low-high') filtered.sort((a,b) => a.price - b.price);
+        if(sortValue === 'high-low') filtered.sort((a,b) => b.price - a.price);
+
+        filtered.forEach(p => {
+            const badgeHtml = p.badge ? `<div class="badge">${p.badge}</div>` : '';
+            // Gắn thuộc tính draggable cho phép kéo thả (V6)
+            container.innerHTML += `
+                <div class="product-card" draggable="true" ondragstart="drag(event)" data-name="${p.title}" id="card-${p.id}">
+                    ${badgeHtml}
+                    <img src="${p.img}" class="product-img">
+                    <div class="product-info">
+                        <h3 class="product-title">${p.title}</h3>
+                        <div class="product-price">$${p.price.toFixed(2)}</div>
+                        <button class="btn-add" onclick="addToCart('${p.id}')">🛒 Thêm Vào Giỏ</button>
+                    </div>
+                </div>
+            `;
+        });
+    }
+
+    // DRAG AND DROP FUNCTIONS (V6)
+    function allowDrop(ev) { ev.preventDefault(); document.getElementById('wishlist-zone').classList.add('dragover'); }
+    function dragLeave(ev) { document.getElementById('wishlist-zone').classList.remove('dragover'); }
+    function drag(ev) { ev.dataTransfer.setData("bookName", ev.currentTarget.getAttribute('data-name')); }
+    function drop(ev) {
+        ev.preventDefault();
+        document.getElementById('wishlist-zone').classList.remove('dragover');
+        var data = ev.dataTransfer.getData("bookName");
+        if(data) document.getElementById('wishlist-items').innerHTML += `<div class="wishlist-item">${data}</div>`;
+    }
+
+    function addToCart(id) {
+        const product = DB_PRODUCTS.find(p => p.id === id);
+        cart.push(product);
+        document.getElementById('cart-count').innerText = cart.length;
+        const toast = document.getElementById("toast");
+        toast.innerText = `✅ Đã thêm: ${product.title}`;
+        toast.className = "show";
+        setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 3000);
+    }
+
+    function switchView(view) {
+        if(view === 'cart') {
+            document.getElementById('dashboard-section').style.display = 'none';
+            document.getElementById('hero-banner').style.display = 'none';
+            document.getElementById('cart-section').style.display = 'block';
+            document.getElementById('payment-iframe-container').style.display = 'none';
+            document.getElementById('btn-checkout').style.display = 'block';
+            renderCart();
+        } else {
+            document.getElementById('cart-section').style.display = 'none';
+            document.getElementById('dashboard-section').style.display = 'block';
+            document.getElementById('hero-banner').style.display = 'block';
+        }
+    }
+
+    function renderCart() {
+        const itemsDiv = document.getElementById('cart-items');
+        if (cart.length === 0) {
+            itemsDiv.innerHTML = "<div style='text-align:center; padding: 30px;'>Giỏ hàng trống!</div>";
+            document.getElementById('promo-section').style.display = 'none';
+            document.getElementById('btn-checkout').style.display = 'none';
+            document.getElementById('cart-total-display').style.display = 'none';
+            document.getElementById('discount-display').style.display = 'none';
+        } else {
+            let total = 0, html = "";
+            cart.forEach(item => {
+                html += `<div class="cart-item"><span>${item.title}</span> <span>$${item.price.toFixed(2)}</span></div>`;
+                total += item.price;
+            });
+            itemsDiv.innerHTML = html;
+            document.getElementById('promo-section').style.display = 'flex';
+            document.getElementById('btn-checkout').style.display = 'block';
+            updateTotal();
+        }
+    }
+
+    function applyPromo() {
+        const code = document.getElementById('promo-input').value.toUpperCase();
+        const msg = document.getElementById('promo-msg');
+        if(code === 'PLAYWRIGHT20') {
+            discountPercent = 0.2;
+            msg.style.color = 'var(--success)';
+            msg.innerText = '✅ Đã giảm 20%';
+        } else {
+            discountPercent = 0;
+            msg.style.color = '#ef4444';
+            msg.innerText = '❌ Mã không hợp lệ!';
+        }
+        updateTotal();
+    }
+
+    function updateTotal() {
+        let subTotal = cart.reduce((sum, item) => sum + item.price, 0);
+        let discount = subTotal * discountPercent;
+        document.getElementById('cart-total-display').innerText = `Tổng thanh toán: $${(subTotal - discount).toFixed(2)}`;
+        document.getElementById('cart-total-display').style.display = 'block';
+
+        const discDisplay = document.getElementById('discount-display');
+        if(discountPercent > 0) {
+            discDisplay.innerText = `- Khuyến mãi (20%): $${discount.toFixed(2)}`;
+            discDisplay.style.display = 'block';
+        } else { discDisplay.style.display = 'none'; }
+    }
+
+    function openPaymentIframe() {
+        document.getElementById('btn-checkout').style.display = 'none';
+        document.getElementById('payment-iframe-container').style.display = 'block';
+        // Reset iframe mỗi lần mở
+        const iframe = document.getElementById('payment-frame');
+        iframe.srcdoc = iframe.srcdoc;
+    }
+</script>
+</body>
+</html>
